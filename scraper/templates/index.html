@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shareholding Data Extractor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .input-group {
+            margin-bottom: 30px;
+        }
+
+        .input-group label {
+            display: block;
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+            text-align: left;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 18px 24px;
+            border: 2px solid #e1e8ed;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 18px 40px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            min-width: 200px;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            margin-top: 25px;
+            padding: 18px;
+            border-radius: 12px;
+            font-weight: 500;
+            display: none;
+            font-size: 1rem;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.loading {
+            background: #cce7ff;
+            color: #0066cc;
+            border: 1px solid #99d6ff;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .download-section {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .download-btn {
+            background: #2ecc71;
+            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+        }
+
+        .download-btn:hover:not(:disabled) {
+            background: #27ae60;
+            box-shadow: 0 10px 30px rgba(46, 204, 113, 0.6);
+        }
+
+        .features {
+            margin-top: 40px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+
+        .feature {
+            padding: 20px 15px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+
+        .feature h4 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .feature p {
+            color: #7f8c8d;
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .btn {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Shareholding Extractor</h1>
+            <p>Flask-powered data scraping and CSV export</p>
+        </div>
+
+        <form id="scrapeForm">
+            <div class="input-group">
+                <label for="urlInput">Website URL</label>
+                <input type="url" id="urlInput" name="url" placeholder="Enter the website URL..." required />
+            </div>
+
+            <button type="submit" class="btn" id="scrapeBtn">
+                <span class="btn-text">📥 Download CSV</span>
+                <div class="loading-spinner" style="display: none;"></div>
+            </button>
+        </form>
+
+        <div class="download-section" id="downloadSection">
+            <button class="btn download-btn" id="downloadBtn">
+                <span>📁 Download File</span>
+            </button>
+        </div>
+
+        <div class="status" id="statusDiv"></div>
+
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">🐍</div>
+                <h4>Flask Backend</h4>
+                <p>Server-side processing</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📈</div>
+                <h4>Real Scraping</h4>
+                <p>Actual data extraction</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">💾</div>
+                <h4>CSV Export</h4>
+                <p>Professional format</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentFilename = null;
+
+        document.getElementById('scrapeForm').addEventListener('submit', handleScrape);
+        document.getElementById('downloadBtn').addEventListener('click', downloadFile);
+
+        async function handleScrape(e) {
+            e.preventDefault();
+            
+            const url = document.getElementById('urlInput').value.trim();
+            const statusDiv = document.getElementById('statusDiv');
+            const scrapeBtn = document.getElementById('scrapeBtn');
+            const downloadSection = document.getElementById('downloadSection');
+            
+            if (!url) {
+                showStatus('Please enter a valid URL', 'error');
+                return;
+            }
+
+            // Show loading state
+            scrapeBtn.disabled = true;
+            scrapeBtn.querySelector('.btn-text').textContent = 'Processing...';
+            scrapeBtn.querySelector('.loading-spinner').style.display = 'inline-block';
+            downloadSection.style.display = 'none';
+            showStatus('Scraping website data...', 'loading');
+
+            try {
+                const response = await fetch('/scrape', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    currentFilename = result.filename;
+                    showStatus(`Data scraped successfully! Found ${result.rows} rows.`, 'success');
+                    downloadSection.style.display = 'block';
+                } else {
+                    showStatus(result.error || 'Error processing data', 'error');
+                }
+
+            } catch (error) {
+                showStatus('Network error: ' + error.message, 'error');
+                console.error('Scraping error:', error);
+            } finally {
+                // Reset button state
+                scrapeBtn.disabled = false;
+                scrapeBtn.querySelector('.btn-text').textContent = '📥 Download CSV';
+                scrapeBtn.querySelector('.loading-spinner').style.display = 'none';
+            }
+        }
+
+        function downloadFile() {
+            if (currentFilename) {
+                window.location.href = `/download/${currentFilename}`;
+                showStatus('File downloaded successfully!', 'success');
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusDiv');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>
